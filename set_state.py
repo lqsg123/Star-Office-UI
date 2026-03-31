@@ -25,7 +25,9 @@ VALID_STATES = [
     "researching",
     "executing",
     "syncing",
-    "error"
+    "error",
+    "working",
+    "waiting_subagent"
 ]
 
 def load_state():
