@@ -28,43 +28,27 @@
     #detail-box {
       margin: 28px auto 0;
       width: min(960px, 98vw);
+      height: clamp(80px, 12vw, 120px);
       border: 2px solid #fff;
       background: #000;
-      padding: 48px 60px;
       overflow: hidden;
-    }
-
-    #marquee-wrap {
-      width: 100%;
-      overflow: hidden;
-      white-space: nowrap;
-    }
-
-    #marquee-inner {
-      display: inline-block;
-      white-space: nowrap;
-      font-size: clamp(60px, 12vw, 96px);
-      color: #00ff41;
-      letter-spacing: 0.1em;
-      animation: marquee-scroll 14s linear infinite;
-    }
-
-    @keyframes marquee-scroll {
-      0%   { transform: translateX(100%); }
-      100% { transform: translateX(-100%); }
-    }
-
-    #progress-wrap {
-      margin: 40px auto 0;
-      width: min(960px, 98vw);
-      height: 48px;
       position: relative;
     }
 
-    #progress-svg {
-      width: 100%;
-      height: 100%;
-      display: block;
+    #progress-bar {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 60%;
+      width: clamp(80px, 12vw, 160px);
+      background: #fff;
+      animation: progress-slide 2s ease-in-out infinite;
+    }
+
+    @keyframes progress-slide {
+      0%   { left: -15%; }
+      50%  { left: 100%; }
+      100% { left: -15%; }
     }
 
     #summary-box {
@@ -107,16 +91,7 @@
   </div>
 
   <div id="detail-box">
-    <div id="marquee-wrap">
-      <div id="marquee-inner">休息中，随时待命</div>
-    </div>
-  </div>
-
-  <div id="progress-wrap">
-    <svg id="progress-svg" viewBox="0 0 960 48" preserveAspectRatio="none">
-      <rect x="0" y="0" width="960" height="48" fill="#000"/>
-      <rect id="progress-bar" x="0" y="0" width="0" height="48" fill="#fff"/>
-    </svg>
+    <div id="progress-bar"></div>
   </div>
 
   <div id="summary-box">
@@ -140,40 +115,29 @@
     let currentSummary = '';
 
     let state = 'idle';
-    let progress = 0;
     let progressTimer = null;
-
-    function setMarquee(text) {
-      const el = document.getElementById('marquee-inner');
-      const displayText = text || DETAIL[state] || '休息中，随时待命';
-      el.textContent = displayText;
-      el.style.animation = 'none';
-      el.offsetHeight;
-      el.style.animation = '';
-    }
-
-    function startProgress() {
-      clearInterval(progressTimer);
-      progress = 60;
-      function tick() {
-        const step = Math.random() * 10 + 5;
-        progress = Math.min(92, progress + step);
-        document.getElementById('progress-bar').setAttribute('width', Math.round(progress / 100 * 960));
-      }
-      tick();
-      progressTimer = setInterval(tick, 2000);
-    }
 
     function stopProgress() {
       clearInterval(progressTimer);
-      document.getElementById('progress-bar').setAttribute('width', '0');
+      const bar = document.getElementById('progress-bar');
+      if (bar) bar.style.display = 'none';
+    }
+
+    function startProgress() {
+      const bar = document.getElementById('progress-bar');
+      if (bar) {
+        bar.style.display = 'block';
+        // Restart animation
+        bar.style.animation = 'none';
+        bar.offsetHeight; // reflow
+        bar.style.animation = 'progress-slide 2s ease-in-out infinite';
+      }
     }
 
     function updateUI(s) {
       const statusEl = document.getElementById('status');
       statusEl.textContent = LABEL[s];
       statusEl.className = s === 'idle' ? '' : s;
-      setMarquee(currentTask || DETAIL[s]);
       if (s === 'idle') stopProgress();
       else startProgress();
     }
@@ -201,20 +165,13 @@
         const task = d.detail || DETAIL[s] || '';
         if (task !== currentTask) {
           currentTask = task;
-          setMarquee(task);
         }
         if (s !== state) { state = s; updateUI(state); }
         if (d.summary !== undefined && d.summary !== currentSummary) {
           updateSummary(d.summary);
         }
       } catch(e) {
-        // fallback: check URL params for detail (set by set_state.py)
-        const params = new URLSearchParams(window.location.search);
-        const urlDetail = params.get('detail');
-        if (urlDetail && urlDetail !== currentTask) {
-          currentTask = urlDetail;
-          setMarquee(urlDetail);
-        }
+        // fallback silent
       }
     }
 
@@ -237,6 +194,7 @@
     setTimeout(enterFullscreen, 3000);
 
     updateUI('idle');
+    stopProgress();
     fetchStatus();
     setInterval(fetchStatus, 1500);
   </script>
