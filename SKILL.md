@@ -196,9 +196,27 @@ cloudflared tunnel --url http://127.0.0.1:19000
 
 - 尽量帮主人把"启动步骤"做完，让主人只负责"看"和"体验"
 - 如果主人要对外访问，优先用 Cloudflare Tunnel（最快最方便）
-- 状态切换应由你主动执行：
-  - 接任务前，先把自己状态切到"工作中"（如 `writing/researching/executing`），再开始工作；
-  - 完成任务后，先把自己状态切回"待命中（idle）"，再进入休息/等待下一任务。
+- **状态切换规则（必须遵守）：**
+
+  | 状态 | 所在区域 | 动画表现 |
+  |------|---------|---------|
+  | `idle`（待命/休息） | 休息区（breakroom） | 躺在床上或沙发上、喝咖啡 |
+  | `writing` / `researching` / `executing`（工作中） | 电脑桌前（writing 区） | 坐着工作 |
+  | `error`（报错/指挥） | 服务器区（error 区） | 站在服务器前指挥子代理 |
+
+  **执行流程：**
+  1. **接任务前** → 先调用 `set_state.py` 切换到对应工作状态（如 `writing`），再开始任务
+  2. **任务完成后** → 先调用 `set_state.py idle` 切回休息区，再进入等待
+  3. **报错时** → 调用 `set_state.py error`，角色会自动走到服务器区
+
+  **状态文件路径：** `Star-Office-UI/state.json`
+  **切换命令示例：**
+  ```bash
+  cd Star-Office-UI
+  python set_state.py writing "正在调研项目"
+  python set_state.py idle "待命中"
+  python set_state.py error "发现bug在排查"
+  ```
 - 注意不要暴露你主人的内网地址或私有信息
 
 ---
