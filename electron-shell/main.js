@@ -284,17 +284,12 @@ function createWindows(projectRoot) {
   ensureElectronStandaloneSnapshot(projectRoot);
 
   mainWindow = new BrowserWindow({
-    width: 700,
-    height: 460,
-    x: 80,
-    y: 60,
-    transparent: true,
-    frame: false,
-    alwaysOnTop: true,
+    width: 1280,
+    height: 800,
+    fullscreen: true,
+    frame: true,
     resizable: false,
-    maximizable: false,
-    fullscreenable: false,
-    hasShadow: false,
+    fullscreenable: true,
     icon: appIconPath || undefined,
     webPreferences: {
       preload: preloadPath,
@@ -303,6 +298,7 @@ function createWindows(projectRoot) {
     },
   });
   mainWindow.setTitle(APP_NAME);
+  mainWindow.setFullScreen(true);
 
   miniWindow = new BrowserWindow({
     width: 220,
