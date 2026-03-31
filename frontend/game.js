@@ -568,6 +568,16 @@ function create() {
   fetchStatus();
   fetchAgents();
 
+  // 页面可见性变化时立即刷新状态（防止后台标签页停止更新）
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      lastFetch = 0;  // 强制立即刷新
+      lastAgentsFetch = 0;
+      fetchStatus();
+      fetchAgents();
+    }
+  });
+
   // 可选调试：仅在显式开启 debug 模式时渲染测试用尼卡 agent
   let debugAgents = false;
   try {
