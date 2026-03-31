@@ -713,8 +713,10 @@ function fetchStatus() {
         typewriterText = '';
         typewriterIndex = 0;
 
-        pendingDesiredState = null;
+        pendingDesiredState = nextState;
         currentState = nextState;
+        targetX = areas[STATES[nextState].area].x;
+        targetY = areas[STATES[nextState].area].y;
 
         if (nextState === 'idle') {
           if (game.textures.exists('sofa_busy')) {
