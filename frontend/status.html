@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>大龙虾状态</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    body { display: flex; align-items: center; justify-content: center; }
+
+    #status {
+      font-size: clamp(80px, 18vw, 280px);
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 0.05em;
+      text-align: center;
+      transition: opacity 0.3s ease;
+      user-select: none;
+    }
+
+    #status.fade { opacity: 0.3; }
+    #status.working { color: #4ade80; }
+    #status.idle { color: #94a3b8; }
+
+    #sub {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: clamp(14px, 2vw, 24px);
+      color: #555;
+      letter-spacing: 0.1em;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body>
+  <div id="status" class="idle">待机</div>
+  <div id="sub">等待状态...</div>
+
+  <script>
+    let currentState = null;
+
+    const LABELS = {
+      idle: '待机',
+      writing: '工作中',
+      researching: '工作中',
+      executing: '工作中',
+      syncing: '同步中',
+      error: '报错'
+    };
+
+    const SUB_LABELS = {
+      idle: '休息中，随时待命',
+      writing: '正在处理任务',
+      researching: '正在搜索信息',
+      executing: '正在执行任务',
+      syncing: '同步数据中',
+      error: '发现问题，排查中'
+    };
+
+    async function fetchStatus() {
+      try {
+        const r = await fetch('/status?t=' + Date.now());
+        const data = await r.json();
+        const nextState = data.state || 'idle';
+        const detail = data.detail || '';
+
+        if (nextState !== currentState) {
+          const el = document.getElementById('status');
+          el.className = nextState === 'idle' ? 'idle fade' : 'working';
+
+          // 先淡出
+          el.style.opacity = '0';
+          setTimeout(() => {
+            el.textContent = LABELS[nextState] || nextState;
+            el.style.opacity = '1';
+          }, 300);
+
+          document.getElementById('sub').textContent = detail || SUB_LABELS[nextState] || '';
+          currentState = nextState;
+        }
+      } catch (e) {
+        document.getElementById('sub').textContent = '连接失败: ' + e.message;
+      }
+    }
+
+    // 初始加载
+    fetchStatus();
+    // 每2秒轮询
+    setInterval(fetchStatus, 2000);
+  </script>
+</body>
+</html>

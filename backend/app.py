@@ -271,6 +271,16 @@ ensure_electron_standalone_snapshot()
 _INDEX_HTML_CACHE = None
 
 
+@app.route("/mini", methods=["GET"])
+def mini_status():
+    """Serve a minimal big-text status display"""
+    status_file = os.path.join(FRONTEND_DIR, "status.html")
+    with open(status_file, "r", encoding="utf-8") as f:
+        html = f.read()
+    resp = make_response(html)
+    resp.headers["Content-Type"] = "text/html; charset=utf-8"
+    return resp
+
 @app.route("/", methods=["GET"])
 def index():
     """Serve the pixel office UI with built-in version cache busting"""

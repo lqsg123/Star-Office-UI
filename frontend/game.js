@@ -729,19 +729,15 @@ function fetchStatus() {
         targetY = areas[STATES[nextState].area].y;
 
         if (nextState === 'idle') {
-          if (game.textures.exists('sofa_busy')) {
-            sofa.setTexture('sofa_busy');
-            sofa.anims.play('sofa_busy', true);
-          }
-          star.setVisible(false);
-          star.anims.stop();
+          // idle：显示 star_idle 猫（在 breakroom 位置），隐藏工作猫
+          star.setVisible(true);
+          star.anims.play('star_idle', true);
           if (window.starWorking) {
             window.starWorking.setVisible(false);
             window.starWorking.anims.stop();
           }
         } else if (nextState === 'error') {
-          sofa.anims.stop();
-          sofa.setTexture('sofa_idle');
+          // error：隐藏所有猫
           star.setVisible(false);
           star.anims.stop();
           if (window.starWorking) {
@@ -749,8 +745,7 @@ function fetchStatus() {
             window.starWorking.anims.stop();
           }
         } else if (nextState === 'syncing') {
-          sofa.anims.stop();
-          sofa.setTexture('sofa_idle');
+          // syncing：隐藏所有猫
           star.setVisible(false);
           star.anims.stop();
           if (window.starWorking) {
@@ -758,8 +753,7 @@ function fetchStatus() {
             window.starWorking.anims.stop();
           }
         } else {
-          sofa.anims.stop();
-          sofa.setTexture('sofa_idle');
+          // writing/researching/executing：显示工作猫，隐藏 idle 猫
           star.setVisible(false);
           star.anims.stop();
           if (window.starWorking) {
@@ -832,8 +826,8 @@ function moveStar(time) {
           pendingDesiredState = null;
 
           if (currentState === 'idle') {
-            star.setVisible(false);
-            star.anims.stop();
+            star.setVisible(true);
+            star.anims.play('star_idle', true);
             if (window.starWorking) {
               window.starWorking.setVisible(false);
               window.starWorking.anims.stop();
@@ -855,15 +849,11 @@ function moveStar(time) {
         pendingDesiredState = null;
 
         if (currentState === 'idle') {
-          star.setVisible(false);
-          star.anims.stop();
+          star.setVisible(true);
+          star.anims.play('star_idle', true);
           if (window.starWorking) {
             window.starWorking.setVisible(false);
             window.starWorking.anims.stop();
-          }
-          if (game.textures.exists('sofa_busy')) {
-            sofa.setTexture('sofa_busy');
-            sofa.anims.play('sofa_busy', true);
           }
         } else {
           star.setVisible(false);
@@ -872,8 +862,6 @@ function moveStar(time) {
             window.starWorking.setVisible(true);
             window.starWorking.anims.play('star_working', true);
           }
-          sofa.anims.stop();
-          sofa.setTexture('sofa_idle');
         }
       }
     }
