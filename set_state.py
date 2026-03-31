@@ -2,7 +2,7 @@
 """Update Star Office UI state (for testing or agent-driven sync).
 
 For automatic state sync from OpenClaw: add a rule in your agent SOUL.md or AGENTS.md:
-  Before starting a task: run `python3 set_state.py writing "doing XYZ"`.
+  Before starting a task: run `python3 set_state.py writing "doing XYZ" --summary "具体内容"`.
   After finishing: run `python3 set_state.py idle "ready"`.
 The office UI reads state from the same state.json this script writes.
 """
@@ -47,26 +47,40 @@ def save_state(state):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("用法: python set_state.py <state> [detail]")
+        print("用法: python set_state.py <state> [detail] [--summary '任务总结']")
         print(f"状态选项: {', '.join(VALID_STATES)}")
         print("\n例子:")
         print("  python set_state.py idle")
-        print("  python set_state.py researching \"在查 Godot MCP...\"")
-        print("  python set_state.py writing \"在写热点日报模板...\"")
+        print("  python set_state.py writing '在写热点日报模板' --summary '已完成前3个板块，正处理第4个'")
         sys.exit(1)
-    
+
     state_name = sys.argv[1]
-    detail = sys.argv[2] if len(sys.argv) > 2 else ""
-    
+    detail = ""
+    summary = ""
+
+    # Parse args
+    i = 2
+    while i < len(sys.argv):
+        if sys.argv[i] == "--summary" and i + 1 < len(sys.argv):
+            summary = sys.argv[i + 1]
+            i += 2
+        else:
+            detail = sys.argv[i]
+            i += 1
+
     if state_name not in VALID_STATES:
         print(f"无效状态: {state_name}")
         print(f"有效选项: {', '.join(VALID_STATES)}")
         sys.exit(1)
-    
+
     state = load_state()
     state["state"] = state_name
     state["detail"] = detail
+    if summary:
+        state["summary"] = summary
     state["updated_at"] = datetime.now().isoformat()
-    
+
     save_state(state)
     print(f"状态已更新: {state_name} - {detail}")
+    if summary:
+        print(f"总结: {summary}")
