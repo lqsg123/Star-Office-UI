@@ -31,6 +31,18 @@
             transition: transform .25s ease;
             will-change: transform;
         }
+        /* 平板 / 小屏幕：缩放主舞台适配视口，避免溢出 */
+        @media (max-width: 1280px) {
+            #main-stage {
+                width: 1280px;
+                transform-origin: top center;
+                transform: scale(clamp(0.1, (100vw - 40px) / 1280, 1));
+            }
+            #game-container {
+                width: 1280px;
+                height: 720px;
+            }
+        }
         body.drawer-open #main-stage {
             /* 与右侧抽屉并列：按视口动态左移，确保与抽屉至少保留 20px 间隔 */
             transform: translateX(calc(-1 * max(0px, (min(320px, 92vw) + 20px) - ((100vw - 1280px) / 2))));

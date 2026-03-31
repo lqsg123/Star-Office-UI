@@ -1,0 +1,28 @@
+# Star Office UI - docker-compose for local dev / quick demo
+version: "3.9"
+
+services:
+  star-office:
+    build: .
+    container_name: star-office
+    ports:
+      - "19000:19000"
+    environment:
+      - FLASK_SECRET_KEY=${FLASK_SECRET_KEY:-change-me-in-production}
+      - ASSET_DRAWER_PASS=${ASSET_DRAWER_PASS:-1234}
+      # Optional: Gemini API for AI room generation
+      # GEMINI_API_KEY=your-key-here
+      # GEMINI_MODEL=nanobanana-pro
+    volumes:
+      # Persist state and agents data across restarts
+      - ./state.json:/app/state.json:ro
+      - ./join-keys.json:/app/join-keys.json:ro
+      # Optional: mount memory dir for yesterday-memo feature
+      # - ../memory:/app/memory:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:19000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

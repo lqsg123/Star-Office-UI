@@ -1,0 +1,12 @@
+# Keep image small — exclude everything except what Docker COPY needs
+__pycache__
+*.pyc
+.git
+.github
+docs
+desktop-pet
+node_modules
+*.log
+.env
+.env.example
+CLAWHUB_CACHE*

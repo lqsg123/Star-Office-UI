@@ -100,6 +100,29 @@ join_lock = threading.Lock()
 _bg_tasks = {}  # task_id -> {"status": "pending"|"done"|"error", "result": ..., "error": ..., "created_at": ...}
 _bg_tasks_lock = threading.Lock()
 
+# TTL-based cleanup for stale bg tasks (prevents memory leak if user closes browser before polling)
+BG_TASK_TTL_SECONDS = 3600  # 1 hour
+
+
+def _cleanup_old_bg_tasks():
+    """Remove bg tasks older than BG_TASK_TTL_SECONDS to prevent unbounded memory growth."""
+    now = datetime.now()
+    to_remove = []
+    with _bg_tasks_lock:
+        for tid, task in _bg_tasks.items():
+            created_str = task.get("created_at")
+            if created_str:
+                try:
+                    created_dt = datetime.fromisoformat(created_str)
+                    if (now - created_dt).total_seconds() > BG_TASK_TTL_SECONDS:
+                        to_remove.append(tid)
+                except Exception:
+                    # Invalid timestamp format; treat as stale
+                    to_remove.append(tid)
+        for tid in to_remove:
+            _bg_tasks.pop(tid, None)
+    return len(to_remove)
+
 # Generate a version timestamp once at server startup for cache busting
 VERSION_TIMESTAMP = datetime.now().strftime("%Y%m%d_%H%M%S")
 ASSET_DRAWER_PASS_DEFAULT = os.getenv("ASSET_DRAWER_PASS", "1234")
@@ -1434,6 +1457,10 @@ def assets_generate_rpg_background():
 
         # Create async task
         import string as _string
+
+        # Lazy TTL cleanup: evict stale tasks before adding a new one
+        _cleanup_old_bg_tasks()
+
         task_id = "gen_" + str(int(datetime.now().timestamp() * 1000)) + "_" + "".join(random.choices(_string.ascii_lowercase + _string.digits, k=4))
         with _bg_tasks_lock:
             _bg_tasks[task_id] = {"status": "pending", "created_at": datetime.now().isoformat()}
